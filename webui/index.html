@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thinking MCP - Knowledge Graph Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Thinking MCP - Knowledge Graph</h1>
+            <p>Interactive visualization of the memory graph</p>
+        </header>
+
+        <div class="controls">
+            <button id="loadData" class="btn btn-primary">🔄 Load Memory Data</button>
+            <button id="refreshGraph" class="btn btn-secondary">🔃 Refresh Graph</button>
+            <input type="text" id="searchInput" placeholder="Search entities..." class="search-input">
+            <button id="searchBtn" class="btn btn-search">🔍 Search</button>
+        </div>
+
+        <div class="main-content">
+            <div class="graph-container">
+                <div id="knowledge-graph" class="graph-visualization"></div>
+            </div>
+            
+            <div class="sidebar">
+                <div class="info-panel">
+                    <h3>📊 Graph Statistics</h3>
+                    <div id="stats">
+                        <p>Entities: <span id="entityCount">0</span></p>
+                        <p>Relations: <span id="relationCount">0</span></p>
+                        <p>Entity Types: <span id="typeCount">0</span></p>
+                    </div>
+                </div>
+
+                <div class="entity-details">
+                    <h3>🔍 Selected Entity</h3>
+                    <div id="entityInfo">
+                        <p>Click on a node to see details</p>
+                    </div>
+                </div>
+
+                <div class="entity-list">
+                    <h3>📋 All Entities</h3>
+                    <div id="entityList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

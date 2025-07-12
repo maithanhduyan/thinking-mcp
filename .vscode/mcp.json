@@ -1,0 +1,10 @@
+{
+    "servers": {
+        "thinking": {
+            "url": "http://localhost:8000/mcp",
+            "headers": {
+                "X-API-Key": "mcp-api-key-2025-super-secure-token"
+            }
+        }
+    }
+}
