@@ -152,3 +152,5 @@ def get_all_users() -> list:
         return []
     finally:
         conn.close()
+
+        

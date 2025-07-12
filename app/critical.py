@@ -1,6 +1,12 @@
 # -*- coding: utf-8 -*-
 # app/critical.py
 # Critical Thinking Module for MCP Server
+"""
+Critical Thinking (Tư duy phản biện)
+Phân tích, đánh giá thông tin
+Tìm lỗ hổng trong lập luận
+Kiểm tra tính hợp lý
+"""
 
 import json
 import asyncio
