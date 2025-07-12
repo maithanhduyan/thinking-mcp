@@ -82,6 +82,11 @@ from app.critical import (
     get_critical_analysis_history,
     get_critical_analysis_stats
 )
+from app.lateral import (
+    lateral_thinking_analysis,
+    get_lateral_thinking_history,
+    get_lateral_thinking_stats
+)
 
 from typing import Dict, Any, Callable, Optional, Union
 from app.logger import get_logger
@@ -613,6 +618,57 @@ async def handle_tools_list(params: Optional[Union[dict, list]] = None) -> Dict[
                 "type": "object",
                 "properties": {}
             }
+        },
+        {
+            "name": "lateral_thinking",
+            "description": "Creative problem-solving using Edward de Bono's lateral thinking techniques",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "technique": {
+                        "type": "string",
+                        "enum": ["random_word", "provocation", "alternative", "reversal", "metaphor", "assumption_challenge"],
+                        "description": "Lateral thinking technique to use"
+                    },
+                    "stimulus": {
+                        "type": "string",
+                        "description": "The stimulus or prompt used for the technique"
+                    },
+                    "connection": {
+                        "type": "string",
+                        "description": "How the stimulus connects to the problem"
+                    },
+                    "idea": {
+                        "type": "string",
+                        "description": "The creative idea generated"
+                    },
+                    "evaluation": {
+                        "type": "string",
+                        "description": "Brief evaluation of the idea's potential"
+                    },
+                    "next_technique_needed": {
+                        "type": "boolean",
+                        "description": "Whether to try another technique"
+                    }
+                },
+                "required": ["technique", "stimulus", "connection", "idea", "evaluation", "next_technique_needed"]
+            }
+        },
+        {
+            "name": "lateral_thinking_history",
+            "description": "Get history of all lateral thinking sessions performed",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "lateral_thinking_stats",
+            "description": "Get statistics about lateral thinking sessions",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
         }
     ]
     
@@ -654,7 +710,10 @@ async def handle_tools_call(params: Optional[Union[dict, list]] = None) -> Dict[
         "memory_open_nodes": "memory_open_nodes",
         "critical_thinking": "critical_thinking",
         "critical_analysis_history": "critical_analysis_history",
-        "critical_analysis_stats": "critical_analysis_stats"
+        "critical_analysis_stats": "critical_analysis_stats",
+        "lateral_thinking": "lateral_thinking",
+        "lateral_thinking_history": "lateral_thinking_history",
+        "lateral_thinking_stats": "lateral_thinking_stats"
     }
     
     internal_method = tool_method_map.get(tool_name)
@@ -1079,6 +1138,66 @@ async def handle_critical_analysis_stats(params: Optional[Union[dict, list]] = N
     except Exception as e:
         logger.error(f"Error in critical analysis stats: {e}")
         raise ValueError(f"Critical analysis stats failed: {str(e)}")
+
+
+@register_method("lateral_thinking")
+async def handle_lateral_thinking(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Lateral thinking analysis method - Edward de Bono's creative problem solving
+    Expected params with all required fields for lateral analysis
+    """
+    if not params or not isinstance(params, dict):
+        raise ValueError("Lateral thinking requires params as dict with thinking data")
+    
+    try:
+        result = await lateral_thinking_analysis(params)
+        return {
+            "method": "lateral_thinking",
+            "input_data": params,
+            "thinking_result": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Lateral thinking analysis completed successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in lateral thinking: {e}")
+        raise ValueError(f"Lateral thinking analysis failed: {str(e)}")
+
+
+@register_method("lateral_thinking_history")
+async def handle_lateral_thinking_history(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get history of all lateral thinking sessions
+    """
+    try:
+        result = await get_lateral_thinking_history()
+        return {
+            "method": "lateral_thinking_history",
+            "thinking_history": result,
+            "total_sessions": len(result),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": f"Retrieved {len(result)} lateral thinking sessions from history"
+        }
+    except Exception as e:
+        logger.error(f"Error in lateral thinking history: {e}")
+        raise ValueError(f"Lateral thinking history failed: {str(e)}")
+
+
+@register_method("lateral_thinking_stats")
+async def handle_lateral_thinking_stats(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get statistics about lateral thinking sessions
+    """
+    try:
+        result = await get_lateral_thinking_stats()
+        return {
+            "method": "lateral_thinking_stats",
+            "statistics": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Lateral thinking statistics retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in lateral thinking stats: {e}")
+        raise ValueError(f"Lateral thinking stats failed: {str(e)}")
 
 
 async def process_jsonrpc_request(request_data: dict) -> dict:
