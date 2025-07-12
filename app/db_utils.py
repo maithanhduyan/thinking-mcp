@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# app/db_utils.py
+# File: app/db_utils.py
+
 """
 Database utilities and helpers for MCP project
 """

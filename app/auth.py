@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/auth.py
+# File: app/auth.py
 
 import jwt
 import os

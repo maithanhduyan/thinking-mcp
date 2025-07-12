@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-# app/db.py
+# File: app/db.py
+
 import sqlite3
 import hashlib
 import os

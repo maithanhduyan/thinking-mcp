@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/lateral.py
+# File: app/lateral.py
 # Lateral Thinking Module for MCP Server - Edward de Bono's Creative Problem Solving
 
 """

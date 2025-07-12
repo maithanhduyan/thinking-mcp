@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/mcp_logger.py
+# File: app/mcp_logger.py
 """
 MCP Query Logger - Auto log MCP tool calls to database
 """

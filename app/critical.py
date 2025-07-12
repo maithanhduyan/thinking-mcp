@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/critical.py
+# File: app/critical.py
 # Critical Thinking Module for MCP Server
 """
 Critical Thinking (Tư duy phản biện)

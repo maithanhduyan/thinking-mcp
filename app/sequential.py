@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/sequential.py
+# File: app/sequential.py
 # Sequential Thinking Logic Module
 
 import asyncio

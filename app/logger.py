@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# File: app/logger.py
 # Logger for the application using Python's logging module.
 # This module sets up a logger that writes logs to both a file and the console.
 import logging

@@ -1,4 +1,5 @@
-
+# -*- coding: utf-8 -*-
+# File: app/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.db_utils import initialize_all_databases

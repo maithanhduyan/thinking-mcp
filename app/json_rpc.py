@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+# File: app/json_rpc.py
+
 """
 JSON-RPC 2.0 Models
 This module defines the data models for JSON-RPC 2.0 requests and responses.

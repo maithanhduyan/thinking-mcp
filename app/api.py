@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # File: app/api.py
 
 from fastapi import FastAPI, APIRouter, HTTPException, Form, status, Depends

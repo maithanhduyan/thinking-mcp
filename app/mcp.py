@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/mcp
+# File: app/mcp.py
 # This file is part of the Thinking MCP project.
 
 """

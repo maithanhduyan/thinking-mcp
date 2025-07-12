@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/memory.py
+# File: app/memory.py
 # Knowledge Graph Memory Management Module
 """
 Memory là một module quản lý bộ nhớ đồ thị tri thức, cho phép tạo, đọc, cập nhật và xóa các thực thể và quan hệ trong bộ nhớ.

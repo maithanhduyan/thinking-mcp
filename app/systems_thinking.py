@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# app/systems_thinking.py
+# File: app/systems_thinking.py
 """
 Systems Thinking Module - Tư duy hệ thống
 

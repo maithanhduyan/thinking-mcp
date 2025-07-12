@@ -1,4 +1,5 @@
-
+# -*- coding: utf-8 -*-
+# File: app/config.py
 import os
 
 SQLITE_DB_CONFIG = {
