@@ -10,10 +10,11 @@ Memory là một module quản lý bộ nhớ đồ thị tri thức, cho phép 
 import json
 import os
 import asyncio
+import uuid
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Union
 from app.logger import get_logger
-from app.db import get_db_connection
+from app.db import get_db_connection, create_memory_structure, update_memory_structure, get_memory_structure
 
 MEMORY_FILE_PATH = os.getenv("MEMORY_FILE_PATH", "../memory.json")
 
@@ -352,6 +353,46 @@ class KnowledgeGraphManager:
         result_graph = KnowledgeGraph(filtered_entities, filtered_relations)
         logger.info(f"Opened {len(filtered_entities)} entities and {len(filtered_relations)} relations")
         return result_graph
+    
+    async def sync_memory_to_database(self, problem_statement: str = "Current memory graph state") -> str:
+        """Synchronize current memory graph to database memory_structures table"""
+        try:
+            manager = get_knowledge_graph_manager()
+            graph = await manager.read_graph()
+            
+            # Create structure data
+            structure_id = str(uuid.uuid4())
+            json_data = graph.to_dict()
+            entities_count = len(json_data.get("entities", []))
+            relations_count = len(json_data.get("relations", []))
+            
+            metadata = {
+                "sync_timestamp": datetime.now().isoformat(),
+                "sync_method": "manual_sync",
+                "entities_count": entities_count,
+                "relations_count": relations_count
+            }
+            
+            # Save to database
+            success = create_memory_structure(
+                structure_id=structure_id,
+                problem_statement=problem_statement,
+                structure_type="knowledge_graph",
+                json_data=json_data,
+                entities_count=entities_count,
+                relations_count=relations_count,
+                metadata=metadata
+            )
+            
+            if success:
+                logger.info(f"Memory graph synchronized to database: {structure_id}")
+                return structure_id
+            else:
+                raise Exception("Failed to save memory structure to database")
+                
+        except Exception as e:
+            logger.error(f"Error syncing memory to database: {e}")
+            raise
 
 
 # Global knowledge graph manager instance
@@ -428,3 +469,74 @@ async def memory_open_nodes(names: List[str]) -> Dict[str, Any]:
     manager = get_knowledge_graph_manager()
     graph = await manager.open_nodes(names)
     return graph.to_dict()
+
+
+async def memory_sync_to_database(problem_statement: str = "Current memory graph state") -> str:
+    """Synchronize current memory graph to database"""
+    manager = get_knowledge_graph_manager()
+    return await manager.sync_memory_to_database(problem_statement)
+
+
+async def use_memory_structures_for_analysis(problem_type: str = "knowledge_graph") -> Dict[str, Any]:
+    """Use memory_structures data for comprehensive problem analysis"""
+    try:
+        from .db import get_memory_structures_by_type
+        
+        # Get existing knowledge structures
+        structures = get_memory_structures_by_type(problem_type, limit=10)
+        
+        if not structures:
+            return {"message": "No existing memory structures found", "structures": []}
+        
+        # Process and analyze structures
+        analysis_results = []
+        
+        for structure in structures:
+            try:
+                json_data = json.loads(structure.get('json_data', '{}'))
+                entities = json_data.get('entities', [])
+                relations = json_data.get('relations', [])
+                
+                # Extract solution architectures
+                solutions = [e for e in entities if e.get('entityType') == 'Solution Architecture']
+                issues = [e for e in entities if e.get('entityType') == 'Performance Issue']
+                
+                # Extract mitigation relationships
+                mitigations = [r for r in relations if 'mitigates' in r.get('relationType', '')]
+                
+                structure_analysis = {
+                    "structure_id": structure.get('id'),
+                    "problem_statement": structure.get('problem_statement'),
+                    "created_date": structure.get('created_date'),
+                    "entities_count": structure.get('entities_count', 0),
+                    "relations_count": structure.get('relations_count', 0),
+                    "solution_architectures": [s['name'] for s in solutions],
+                    "performance_issues": [i['name'] for i in issues],
+                    "mitigation_strategies": len(mitigations),
+                    "key_insights": []
+                }
+                
+                # Extract key insights from observations
+                for solution in solutions:
+                    observations = solution.get('observations', [])
+                    if observations:
+                        structure_analysis["key_insights"].extend(observations[:2])  # Top 2 insights
+                
+                analysis_results.append(structure_analysis)
+                
+            except Exception as e:
+                logger.error(f"Error processing structure {structure.get('id')}: {e}")
+                continue
+        
+        return {
+            "method": "use_memory_structures_for_analysis",
+            "problem_type": problem_type,
+            "structures_found": len(structures),
+            "structures_analyzed": len(analysis_results),
+            "analysis_results": analysis_results,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in memory structures analysis: {e}")
+        raise

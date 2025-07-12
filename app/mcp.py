@@ -76,7 +76,9 @@ from app.memory import (
     memory_delete_relations,
     memory_read_graph,
     memory_search_nodes,
-    memory_open_nodes
+    memory_open_nodes,
+    memory_sync_to_database,
+    use_memory_structures_for_analysis
 )
 from app.critical import (
     critical_thinking_analysis,
@@ -92,6 +94,11 @@ from app.root_cause import (
     root_cause_analysis,
     get_rca_history,
     get_rca_stats
+)
+from app.systems_thinking import (
+    systems_thinking_analysis,
+    get_systems_thinking_history,
+    get_systems_thinking_stats
 )
 
 from typing import Dict, Any, Callable, Optional, Union
@@ -748,6 +755,94 @@ async def handle_tools_list(params: Optional[Union[dict, list]] = None) -> Dict[
                 "type": "object",
                 "properties": {}
             }
+        },
+        {
+            "name": "systems_thinking",
+            "description": "Holistic analysis of complex systems, identifying relationships, patterns, and leverage points",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "system_name": {
+                        "type": "string",
+                        "description": "Name of the system being analyzed"
+                    },
+                    "purpose": {
+                        "type": "string",
+                        "description": "Main purpose or function of the system"
+                    },
+                    "components": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string"},
+                                "type": {
+                                    "type": "string",
+                                    "enum": ["input", "process", "output", "feedback", "environment"]
+                                },
+                                "description": {"type": "string"},
+                                "relationships": {
+                                    "type": "array",
+                                    "items": {"type": "string"}
+                                }
+                            },
+                            "required": ["name", "type", "description", "relationships"]
+                        },
+                        "description": "System components and their relationships"
+                    },
+                    "feedback_loops": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Feedback loops identified in the system"
+                    },
+                    "constraints": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Constraints limiting system performance"
+                    },
+                    "emergent_properties": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Properties that emerge from system interactions"
+                    },
+                    "leverage_points": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "High-impact intervention points"
+                    },
+                    "systemic_issues": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Systemic issues vs surface symptoms"
+                    },
+                    "interventions": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Proposed system interventions"
+                    },
+                    "next_analysis_needed": {
+                        "type": "boolean",
+                        "description": "Whether deeper analysis is needed"
+                    }
+                },
+                "required": ["system_name", "purpose", "components", "feedback_loops", "constraints", "emergent_properties", "leverage_points", "systemic_issues", "interventions", "next_analysis_needed"]
+            }
+        },
+        {
+            "name": "systems_thinking_history",
+            "description": "Get history of all systems thinking analyses performed",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "systems_thinking_stats",
+            "description": "Get statistics about systems thinking analyses",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
         }
     ]
     
@@ -795,7 +890,10 @@ async def handle_tools_call(params: Optional[Union[dict, list]] = None) -> Dict[
         "lateral_thinking_stats": "lateral_thinking_stats",
         "root_cause_analysis": "root_cause_analysis",
         "root_cause_analysis_history": "root_cause_analysis_history",
-        "root_cause_analysis_stats": "root_cause_analysis_stats"
+        "root_cause_analysis_stats": "root_cause_analysis_stats",
+        "systems_thinking": "systems_thinking",
+        "systems_thinking_history": "systems_thinking_history",
+        "systems_thinking_stats": "systems_thinking_stats"
     }
     
     internal_method = tool_method_map.get(tool_name)
@@ -927,6 +1025,7 @@ async def handle_quick_analysis(params: Optional[Union[dict, list]] = None) -> D
 
 
 @register_method("memory_create_entities")
+@mcp_tool_wrapper("memory_create_entities")
 async def handle_memory_create_entities(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Create multiple new entities in the knowledge graph
@@ -954,6 +1053,7 @@ async def handle_memory_create_entities(params: Optional[Union[dict, list]] = No
 
 
 @register_method("memory_create_relations")
+@mcp_tool_wrapper("memory_create_relations")
 async def handle_memory_create_relations(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Create multiple new relations between entities
@@ -981,6 +1081,7 @@ async def handle_memory_create_relations(params: Optional[Union[dict, list]] = N
 
 
 @register_method("memory_add_observations")
+@mcp_tool_wrapper("memory_add_observations")
 async def handle_memory_add_observations(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Add new observations to existing entities
@@ -1007,6 +1108,7 @@ async def handle_memory_add_observations(params: Optional[Union[dict, list]] = N
 
 
 @register_method("memory_delete_entities")
+@mcp_tool_wrapper("memory_delete_entities")
 async def handle_memory_delete_entities(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Delete multiple entities and their associated relations
@@ -1034,6 +1136,7 @@ async def handle_memory_delete_entities(params: Optional[Union[dict, list]] = No
 
 
 @register_method("memory_delete_observations")
+@mcp_tool_wrapper("memory_delete_observations")
 async def handle_memory_delete_observations(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Delete specific observations from entities
@@ -1060,6 +1163,7 @@ async def handle_memory_delete_observations(params: Optional[Union[dict, list]] 
 
 
 @register_method("memory_delete_relations")
+@mcp_tool_wrapper("memory_delete_relations")
 async def handle_memory_delete_relations(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Delete multiple relations from the knowledge graph
@@ -1086,6 +1190,7 @@ async def handle_memory_delete_relations(params: Optional[Union[dict, list]] = N
 
 
 @register_method("memory_read_graph")
+@mcp_tool_wrapper("memory_read_graph")
 async def handle_memory_read_graph(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Read the entire knowledge graph
@@ -1107,6 +1212,7 @@ async def handle_memory_read_graph(params: Optional[Union[dict, list]] = None) -
 
 
 @register_method("memory_search_nodes")
+@mcp_tool_wrapper("memory_search_nodes")
 async def handle_memory_search_nodes(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Search for nodes in the knowledge graph based on a query
@@ -1136,6 +1242,7 @@ async def handle_memory_search_nodes(params: Optional[Union[dict, list]] = None)
 
 
 @register_method("memory_open_nodes")
+@mcp_tool_wrapper("memory_open_nodes")
 async def handle_memory_open_nodes(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Open specific nodes in the knowledge graph by their names
@@ -1346,113 +1453,152 @@ async def handle_root_cause_analysis_stats(params: Optional[Union[dict, list]] =
         raise ValueError(f"Root cause analysis stats failed: {str(e)}")
 
 
-async def process_jsonrpc_request(request_data: dict) -> dict:
+@register_method("systems_thinking")
+@mcp_tool_wrapper("systems_thinking")
+async def handle_systems_thinking(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
-    Process JSON-RPC 2.0 request and return appropriate response
+    Systems thinking analysis method - holistic analysis of complex systems
+    Expected params with all required fields for systems analysis
+    """
+    if not params or not isinstance(params, dict):
+        raise ValueError("Systems thinking requires params as dict with system data")
+    
+    try:
+        result = await systems_thinking_analysis(params)
+        return {
+            "method": "systems_thinking",
+            "input_data": params,
+            "analysis_result": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Systems thinking analysis completed successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in systems thinking: {e}")
+        raise ValueError(f"Systems thinking analysis failed: {str(e)}")
+
+
+@register_method("systems_thinking_history")
+async def handle_systems_thinking_history(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get history of all systems thinking analyses
     """
     try:
-        # Validate JSON-RPC request structure
-        rpc_request = JsonRpcRequest(**request_data)
+        result = await get_systems_thinking_history()
+        return {
+            "method": "systems_thinking_history",
+            "analysis_history": result,
+            "total_analyses": len(result),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": f"Retrieved {len(result)} systems thinking analyses from history"
+        }
+    except Exception as e:
+        logger.error(f"Error in systems thinking history: {e}")
+        raise ValueError(f"Systems thinking history failed: {str(e)}")
+
+
+@register_method("systems_thinking_stats")
+async def handle_systems_thinking_stats(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get statistics about systems thinking analyses
+    """
+    try:
+        result = await get_systems_thinking_stats()
+        return {
+            "method": "systems_thinking_stats",
+            "statistics": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Systems thinking statistics retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in systems thinking stats: {e}")
+        raise ValueError(f"Systems thinking stats failed: {str(e)}")
+
+
+@register_method("memory_sync_to_database")
+@mcp_tool_wrapper("memory_sync_to_database")
+async def handle_memory_sync_to_database(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Synchronize current memory graph to database memory_structures table
+    Expected params: {"problem_statement": "..."}
+    """
+    problem_statement = "Current e-commerce performance ecosystem analysis"
+    if params and isinstance(params, dict):
+        problem_statement = params.get("problem_statement", problem_statement)
+    
+    try:
+        structure_id = await memory_sync_to_database(problem_statement)
+        return {
+            "method": "memory_sync_to_database",
+            "structure_id": structure_id,
+            "problem_statement": problem_statement,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Memory graph synchronized to database successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in memory sync: {e}")
+        raise ValueError(f"Memory sync failed: {str(e)}")
+
+
+@register_method("memory_use_structures_analysis")
+@mcp_tool_wrapper("memory_use_structures_analysis")
+async def handle_memory_use_structures_analysis(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Use existing memory structures for comprehensive problem analysis
+    Expected params: {"problem_type": "knowledge_graph"}
+    """
+    problem_type = "knowledge_graph"
+    if params and isinstance(params, dict):
+        problem_type = params.get("problem_type", problem_type)
+    
+    try:
+        result = await use_memory_structures_for_analysis(problem_type)
+        return result
+    except Exception as e:
+        logger.error(f"Error in memory structures analysis: {e}")
+        raise ValueError(f"Memory structures analysis failed: {str(e)}")
+
+
+# FastAPI route handlers for MCP JSON-RPC requests
+
+@router.post("/")
+async def handle_mcp_request(request: JsonRpcRequest) -> Union[JsonRpcResponse, JsonRpcErrorResponse]:
+    """
+    Handle MCP JSON-RPC requests
+    """
+    try:
+        method = request.method
+        params = request.params
         
-        # Check if method exists
-        if rpc_request.method not in METHOD_HANDLERS:
-            error_response = create_error_response(
+        logger.info(f"Handling MCP request: {method}")
+        
+        if method not in METHOD_HANDLERS:
+            return create_error_response(
                 "METHOD_NOT_FOUND",
-                f"Method '{rpc_request.method}' not found",
-                rpc_request.id
+                f"Method not found: {method}",
+                request.id,
+                None
             )
-            return error_response.model_dump()
         
-        # Execute method handler
-        handler = METHOD_HANDLERS[rpc_request.method]
+        handler = METHOD_HANDLERS[method]
+        result = await handler(params)
         
-        try:
-            result = await handler(rpc_request.params)
-            success_response = create_success_response(result, rpc_request.id)
-            return success_response.model_dump()
-            
-        except Exception as handler_error:
-            logger.error(f"Error in method handler '{rpc_request.method}': {handler_error}")
-            error_response = create_error_response(
-                "INTERNAL_ERROR",
-                f"Error executing method '{rpc_request.method}': {str(handler_error)}",
-                rpc_request.id
-            )
-            return error_response.model_dump()
-            
-    except Exception as validation_error:
-        logger.error(f"Invalid JSON-RPC request structure: {validation_error}")
-        error_response = create_error_response(
-            "INVALID_REQUEST",
-            f"Invalid request structure: {str(validation_error)}"
+        return create_success_response(result, request.id)
+        
+    except Exception as e:
+        logger.error(f"Error handling MCP request {request.method}: {e}")
+        return create_error_response(
+            "INTERNAL_ERROR",
+            f"Internal error: {str(e)}",
+            request.id,
+            None
         )
-        return error_response.model_dump()
 
 
-# Main MCP endpoint for VS Code integration  
-@router.api_route("/", methods=["GET", "POST"])
-@router.api_route("", methods=["GET", "POST"])
-async def mcp_endpoint(request: Request):
-    """
-    Main endpoint for MCP API.
-    Handles both GET and POST requests with JSON-RPC 2.0 protocol.
-    """
-    if request.method == "GET":
-        # Get list of available methods dynamically
-        available_methods = list(METHOD_HANDLERS.keys())
-        
-        return UnicodeJSONResponse({
-            "message": "Welcome to the Thinking MCP API!",
-            "protocol": "JSON-RPC 2.0",
-            "server": {
-                "name": "Thinking MCP Server",
-                "version": "1.0.0",
-                "description": "Model Context Protocol server with extensible JSON-RPC 2.0 architecture"
-            },
-            "endpoint": "/mcp",
-            "methods": ["GET", "POST"],
-            "available_tools": available_methods,
-            "usage": {
-                "get_info": "GET /mcp",
-                "call_method": "POST /mcp with JSON-RPC 2.0 format",
-                "example_request": {
-                    "jsonrpc": "2.0",
-                    "method": "echo",
-                    "params": {"message": "Hello World"},
-                    "id": 1
-                }
-            }
-        })
-    
-    elif request.method == "POST":
-        try:
-            request_data = await request.json()
-            logger.info(f"Received JSON-RPC request: {request_data}")
-            
-            # Process JSON-RPC request
-            response_data = await process_jsonrpc_request(request_data)
-            
-            logger.info(f"Sending JSON-RPC response: {response_data}")
-            return UnicodeJSONResponse(response_data)
-            
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in request: {e}")
-            error_response = create_error_response(
-                "PARSE_ERROR", 
-                "Invalid JSON"
-            )
-            return UnicodeJSONResponse(error_response.model_dump(), status_code=400)
-            
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
-            error_response = create_error_response(
-                "INTERNAL_ERROR", 
-                "Internal server error"
-            )
-            return UnicodeJSONResponse(error_response.model_dump(), status_code=500)
-    
-    else:
-        raise HTTPException(status_code=405, detail="Method Not Allowed")
-
-
-
+@router.get("/health")
+async def mcp_health_check():
+    """MCP health check endpoint"""
+    return {
+        "status": "ok",
+        "methods": len(METHOD_HANDLERS),
+        "registered_methods": list(METHOD_HANDLERS.keys())
+    }
