@@ -2,6 +2,10 @@
 # File: app/config.py
 import os
 
+# Logging configuration
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+
+# Database configurations
 SQLITE_DB_CONFIG = {
     "dbname": os.getenv("SQLITE_DB", "thinking.db"),
     "user": os.getenv("SQLITE_USER", ""),

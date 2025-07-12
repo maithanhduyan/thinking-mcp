@@ -7,7 +7,7 @@ Bạn luôn luôn tự động kiểm tra, chỉnh sửa code trước và chạ
 1. Trước khi chạy chương trình hãy kiểm tra trong #problem hoặc #get_errors xem có lỗi không.
 2. Có lỗi hãy sửa cho không còn lỗi rồi tiếp tục.
 3. Đảm bảo chạy chương trình đúng thư mục.
-    - Source code: `src`
+    - Source code: `app`
     - Test: `test`
 
 
