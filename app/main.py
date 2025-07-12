@@ -1,7 +1,7 @@
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from app.db import init_database
+from app.db_utils import initialize_all_databases
 from app.logger import get_logger, LOGGING_CONFIG
 import asyncio
 from app.api import router as api_router
@@ -15,8 +15,8 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
     # App Startup
     try:
-        # Initialize database
-        await asyncio.to_thread(init_database)
+        # Initialize all databases (users + MCP tables)
+        await asyncio.to_thread(initialize_all_databases)
         
         logger.info("Application started successfully")
     except Exception as e:

@@ -1,6 +1,6 @@
 # in app
-*.db
 memory.json
+thinking.db*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

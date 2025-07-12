@@ -65,6 +65,7 @@ from app.json_rpc import (
     create_error_response,
     create_success_response
 )
+from app.mcp_logger import mcp_tool_wrapper
 from app.sequential import think_sequentially, quick_analysis
 from app.memory import (
     memory_create_entities,
@@ -86,6 +87,11 @@ from app.lateral import (
     lateral_thinking_analysis,
     get_lateral_thinking_history,
     get_lateral_thinking_stats
+)
+from app.root_cause import (
+    root_cause_analysis,
+    get_rca_history,
+    get_rca_stats
 )
 
 from typing import Dict, Any, Callable, Optional, Union
@@ -109,6 +115,7 @@ def register_method(method_name: str):
 
 
 @register_method("echo")
+@mcp_tool_wrapper("echo")
 async def handle_echo(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Echo method - returns the input parameters back
@@ -123,6 +130,7 @@ async def handle_echo(params: Optional[Union[dict, list]] = None) -> Dict[str, A
 
 
 @register_method("time")
+@mcp_tool_wrapper("time")
 async def handle_time(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Time method - returns current server time in various formats
@@ -142,6 +150,7 @@ async def handle_time(params: Optional[Union[dict, list]] = None) -> Dict[str, A
 
 
 @register_method("ping")
+@mcp_tool_wrapper("ping")
 async def handle_ping(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Ping method - simple health check
@@ -175,6 +184,7 @@ async def handle_list_tools(params: Optional[Union[dict, list]] = None) -> Dict[
 
 
 @register_method("calculate")
+@mcp_tool_wrapper("calculate")
 async def handle_calculate(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Calculate method - performs basic arithmetic operations
@@ -669,6 +679,75 @@ async def handle_tools_list(params: Optional[Union[dict, list]] = None) -> Dict[
                 "type": "object",
                 "properties": {}
             }
+        },
+        {
+            "name": "root_cause_analysis",
+            "description": "Systematic analysis to identify root causes of problems using various RCA techniques",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "problem_statement": {
+                        "type": "string",
+                        "description": "Clear description of the problem to analyze"
+                    },
+                    "technique": {
+                        "type": "string",
+                        "enum": ["5_whys", "fishbone", "fault_tree", "timeline", "barrier_analysis"],
+                        "description": "RCA technique to use: 5_whys (Ask why repeatedly), fishbone (Ishikawa diagram), fault_tree (Top-down analysis), timeline (Chronological analysis), barrier_analysis (Failed controls analysis)"
+                    },
+                    "symptoms": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Observable symptoms of the problem"
+                    },
+                    "immediate_actions": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Immediate actions taken to contain the problem"
+                    },
+                    "root_causes": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Identified root causes"
+                    },
+                    "contributing_factors": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Factors that contributed to the problem"
+                    },
+                    "preventive_actions": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Actions to prevent recurrence"
+                    },
+                    "verification": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Steps to verify the root cause and effectiveness of solutions"
+                    },
+                    "next_analysis_needed": {
+                        "type": "boolean",
+                        "description": "Whether additional analysis is needed"
+                    }
+                },
+                "required": ["problem_statement", "technique", "symptoms", "immediate_actions", "root_causes", "contributing_factors", "preventive_actions", "verification", "next_analysis_needed"]
+            }
+        },
+        {
+            "name": "root_cause_analysis_history",
+            "description": "Get history of all root cause analyses performed",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "root_cause_analysis_stats",
+            "description": "Get statistics about root cause analyses",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
         }
     ]
     
@@ -713,7 +792,10 @@ async def handle_tools_call(params: Optional[Union[dict, list]] = None) -> Dict[
         "critical_analysis_stats": "critical_analysis_stats",
         "lateral_thinking": "lateral_thinking",
         "lateral_thinking_history": "lateral_thinking_history",
-        "lateral_thinking_stats": "lateral_thinking_stats"
+        "lateral_thinking_stats": "lateral_thinking_stats",
+        "root_cause_analysis": "root_cause_analysis",
+        "root_cause_analysis_history": "root_cause_analysis_history",
+        "root_cause_analysis_stats": "root_cause_analysis_stats"
     }
     
     internal_method = tool_method_map.get(tool_name)
@@ -770,6 +852,7 @@ async def handle_notifications_initialized(params: Optional[Union[dict, list]] =
 
 
 @register_method("sequential_thinking")
+@mcp_tool_wrapper("sequential_thinking")
 async def handle_sequential_thinking(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Sequential thinking method - performs step-by-step reasoning analysis
@@ -811,6 +894,7 @@ async def handle_sequential_thinking(params: Optional[Union[dict, list]] = None)
 
 
 @register_method("quick_analysis")
+@mcp_tool_wrapper("quick_analysis")
 async def handle_quick_analysis(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Quick analysis method - performs rapid problem analysis
@@ -1081,6 +1165,7 @@ async def handle_memory_open_nodes(params: Optional[Union[dict, list]] = None) -
 
 
 @register_method("critical_thinking")
+@mcp_tool_wrapper("critical_thinking")
 async def handle_critical_thinking(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Critical thinking analysis method
@@ -1141,6 +1226,7 @@ async def handle_critical_analysis_stats(params: Optional[Union[dict, list]] = N
 
 
 @register_method("lateral_thinking")
+@mcp_tool_wrapper("lateral_thinking")
 async def handle_lateral_thinking(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
     Lateral thinking analysis method - Edward de Bono's creative problem solving
@@ -1198,6 +1284,66 @@ async def handle_lateral_thinking_stats(params: Optional[Union[dict, list]] = No
     except Exception as e:
         logger.error(f"Error in lateral thinking stats: {e}")
         raise ValueError(f"Lateral thinking stats failed: {str(e)}")
+
+
+@register_method("root_cause_analysis")
+@mcp_tool_wrapper("root_cause_analysis")
+async def handle_root_cause_analysis(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Perform root cause analysis using systematic RCA techniques
+    """
+    if not params or not isinstance(params, dict):
+        raise ValueError("root_cause_analysis requires analysis parameters")
+    
+    try:
+        result = await root_cause_analysis(params)
+        return {
+            "method": "root_cause_analysis",
+            "input_data": params,
+            "analysis_result": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Root cause analysis completed successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in root cause analysis: {e}")
+        raise ValueError(f"Root cause analysis failed: {str(e)}")
+
+
+@register_method("root_cause_analysis_history")
+async def handle_root_cause_analysis_history(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get history of all root cause analyses
+    """
+    try:
+        result = await get_rca_history()
+        return {
+            "method": "root_cause_analysis_history",
+            "analysis_history": result,
+            "total_analyses": len(result),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": f"Retrieved {len(result)} root cause analyses from history"
+        }
+    except Exception as e:
+        logger.error(f"Error in root cause analysis history: {e}")
+        raise ValueError(f"Root cause analysis history failed: {str(e)}")
+
+
+@register_method("root_cause_analysis_stats")
+async def handle_root_cause_analysis_stats(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get statistics about root cause analyses
+    """
+    try:
+        result = await get_rca_stats()
+        return {
+            "method": "root_cause_analysis_stats",
+            "statistics": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Root cause analysis statistics retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in root cause analysis stats: {e}")
+        raise ValueError(f"Root cause analysis stats failed: {str(e)}")
 
 
 async def process_jsonrpc_request(request_data: dict) -> dict:

@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 # app/memory.py
 # Knowledge Graph Memory Management Module
+"""
+Memory là một module quản lý bộ nhớ đồ thị tri thức, cho phép tạo, đọc, cập nhật và xóa các thực thể và quan hệ trong bộ nhớ.
+
+
+"""
 
 import json
 import os
@@ -8,6 +13,7 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Union
 from app.logger import get_logger
+from app.db import get_db_connection
 
 MEMORY_FILE_PATH = os.getenv("MEMORY_FILE_PATH", "../memory.json")
 
