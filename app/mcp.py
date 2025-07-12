@@ -52,6 +52,8 @@ Tập trung vào người dùng
 """
 
 import json
+import sys
+import platform
 import time
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Request
@@ -74,6 +76,11 @@ from app.memory import (
     memory_read_graph,
     memory_search_nodes,
     memory_open_nodes
+)
+from app.critical import (
+    critical_thinking_analysis,
+    get_critical_analysis_history,
+    get_critical_analysis_stats
 )
 
 from typing import Dict, Any, Callable, Optional, Union
@@ -538,6 +545,74 @@ async def handle_tools_list(params: Optional[Union[dict, list]] = None) -> Dict[
                 },
                 "required": ["names"]
             }
+        },
+        {
+            "name": "critical_thinking",
+            "description": "Perform systematic critical analysis and evaluation of claims, arguments, and information",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "claim": {
+                        "type": "string",
+                        "description": "The main claim or argument being analyzed"
+                    },
+                    "evidence": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Evidence supporting the claim"
+                    },
+                    "assumptions": {
+                        "type": "array", 
+                        "items": {"type": "string"},
+                        "description": "Underlying assumptions identified"
+                    },
+                    "counterarguments": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Arguments against the claim"
+                    },
+                    "logical_fallacies": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Logical fallacies identified"
+                    },
+                    "credibility_assessment": {
+                        "type": "string",
+                        "description": "Assessment of source credibility"
+                    },
+                    "conclusion": {
+                        "type": "string",
+                        "description": "Final reasoned conclusion"
+                    },
+                    "confidence_level": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Confidence level in conclusion (0-100%)"
+                    },
+                    "next_analysis_needed": {
+                        "type": "boolean",
+                        "description": "Whether further analysis is needed"
+                    }
+                },
+                "required": ["claim", "evidence", "assumptions", "counterarguments", "logical_fallacies", "credibility_assessment", "conclusion", "confidence_level", "next_analysis_needed"]
+            }
+        },
+        {
+            "name": "critical_analysis_history",
+            "description": "Get history of all critical thinking analyses performed",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        {
+            "name": "critical_analysis_stats",
+            "description": "Get statistics about critical thinking analyses",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
         }
     ]
     
@@ -576,7 +651,10 @@ async def handle_tools_call(params: Optional[Union[dict, list]] = None) -> Dict[
         "memory_delete_relations": "memory_delete_relations",
         "memory_read_graph": "memory_read_graph",
         "memory_search_nodes": "memory_search_nodes",
-        "memory_open_nodes": "memory_open_nodes"
+        "memory_open_nodes": "memory_open_nodes",
+        "critical_thinking": "critical_thinking",
+        "critical_analysis_history": "critical_analysis_history",
+        "critical_analysis_stats": "critical_analysis_stats"
     }
     
     internal_method = tool_method_map.get(tool_name)
@@ -941,6 +1019,66 @@ async def handle_memory_open_nodes(params: Optional[Union[dict, list]] = None) -
     except Exception as e:
         logger.error(f"Error in memory_open_nodes: {e}")
         raise ValueError(f"Memory open nodes failed: {str(e)}")
+
+
+@register_method("critical_thinking")
+async def handle_critical_thinking(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Critical thinking analysis method
+    Expected params with all required fields for critical analysis
+    """
+    if not params or not isinstance(params, dict):
+        raise ValueError("Critical thinking requires params as dict with analysis data")
+    
+    try:
+        result = await critical_thinking_analysis(params)
+        return {
+            "method": "critical_thinking",
+            "input_data": params,
+            "analysis_result": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Critical thinking analysis completed successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in critical thinking: {e}")
+        raise ValueError(f"Critical thinking analysis failed: {str(e)}")
+
+
+@register_method("critical_analysis_history")
+async def handle_critical_analysis_history(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get history of all critical thinking analyses
+    """
+    try:
+        result = await get_critical_analysis_history()
+        return {
+            "method": "critical_analysis_history",
+            "analysis_history": result,
+            "total_analyses": len(result),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": f"Retrieved {len(result)} critical analyses from history"
+        }
+    except Exception as e:
+        logger.error(f"Error in critical analysis history: {e}")
+        raise ValueError(f"Critical analysis history failed: {str(e)}")
+
+
+@register_method("critical_analysis_stats")
+async def handle_critical_analysis_stats(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+    """
+    Get statistics about critical thinking analyses
+    """
+    try:
+        result = await get_critical_analysis_stats()
+        return {
+            "method": "critical_analysis_stats",
+            "statistics": result,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "message": "Critical analysis statistics retrieved successfully"
+        }
+    except Exception as e:
+        logger.error(f"Error in critical analysis stats: {e}")
+        raise ValueError(f"Critical analysis stats failed: {str(e)}")
 
 
 async def process_jsonrpc_request(request_data: dict) -> dict:
