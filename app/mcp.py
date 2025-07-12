@@ -101,6 +101,13 @@ from app.systems_thinking import (
     get_systems_thinking_stats
 )
 
+# Import Six Hats logic
+from .six_hats_logic import (
+    validate_six_hats_params, 
+    create_six_hats_response, 
+    get_recommended_hat_sequence
+)
+
 from typing import Dict, Any, Callable, Optional, Union
 from app.logger import get_logger
 
@@ -843,6 +850,51 @@ async def handle_tools_list(params: Optional[Union[dict, list]] = None) -> Dict[
                 "type": "object",
                 "properties": {}
             }
+        },
+        {
+            "name": "six_thinking_hats",
+            "description": "Structured parallel thinking using Edward de Bono's Six Thinking Hats methodology",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "hat_color": {
+                        "type": "string",
+                        "enum": ["white", "red", "black", "yellow", "green", "blue"],
+                        "description": "Color of the thinking hat to use"
+                    },
+                    "perspective": {
+                        "type": "string",
+                        "description": "Perspective or focus for this hat"
+                    },
+                    "insights": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Insights generated while wearing this hat"
+                    },
+                    "questions": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Questions to explore with this hat"
+                    },
+                    "next_hat_needed": {
+                        "type": "boolean",
+                        "description": "Whether to proceed to the next hat"
+                    },
+                    "session_complete": {
+                        "type": "boolean",
+                        "description": "Whether the Six Hats session is complete"
+                    }
+                },
+                "required": ["hat_color", "perspective", "insights", "questions", "next_hat_needed", "session_complete"]
+            }
+        },
+        {
+            "name": "six_hats_sequence",
+            "description": "Get recommended sequence for Six Thinking Hats sessions",
+            "inputSchema": {
+                "type": "object",
+                "properties": {}
+            }
         }
     ]
     
@@ -893,7 +945,9 @@ async def handle_tools_call(params: Optional[Union[dict, list]] = None) -> Dict[
         "root_cause_analysis_stats": "root_cause_analysis_stats",
         "systems_thinking": "systems_thinking",
         "systems_thinking_history": "systems_thinking_history",
-        "systems_thinking_stats": "systems_thinking_stats"
+        "systems_thinking_stats": "systems_thinking_stats",
+        "six_thinking_hats": "six_thinking_hats",
+        "six_hats_sequence": "six_hats_sequence"
     }
     
     internal_method = tool_method_map.get(tool_name)
@@ -1514,48 +1568,47 @@ async def handle_systems_thinking_stats(params: Optional[Union[dict, list]] = No
         raise ValueError(f"Systems thinking stats failed: {str(e)}")
 
 
-@register_method("memory_sync_to_database")
-@mcp_tool_wrapper("memory_sync_to_database")
-async def handle_memory_sync_to_database(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+@register_method("six_thinking_hats")
+@mcp_tool_wrapper("six_thinking_hats")
+async def handle_six_thinking_hats(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
-    Synchronize current memory graph to database memory_structures table
-    Expected params: {"problem_statement": "..."}
+    Six Thinking Hats method - structured parallel thinking using Edward de Bono's methodology
+    Expected params: {
+        "hat_color": "white|red|black|yellow|green|blue",
+        "perspective": "string",
+        "insights": ["string", ...],
+        "questions": ["string", ...], 
+        "next_hat_needed": boolean,
+        "session_complete": boolean
+    }
     """
-    problem_statement = "Current e-commerce performance ecosystem analysis"
-    if params and isinstance(params, dict):
-        problem_statement = params.get("problem_statement", problem_statement)
+    if not params or not isinstance(params, dict):
+        raise ValueError("Six Thinking Hats method requires params as dict")
     
-    try:
-        structure_id = await memory_sync_to_database(problem_statement)
-        return {
-            "method": "memory_sync_to_database",
-            "structure_id": structure_id,
-            "problem_statement": problem_statement,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "message": "Memory graph synchronized to database successfully"
-        }
-    except Exception as e:
-        logger.error(f"Error in memory sync: {e}")
-        raise ValueError(f"Memory sync failed: {str(e)}")
+    # Validate parameters using flexible Python approach
+    validate_six_hats_params(params)
+    
+    # Create response following thinking-mcp patterns
+    return create_six_hats_response(params)
 
 
-@register_method("memory_use_structures_analysis")
-@mcp_tool_wrapper("memory_use_structures_analysis")
-async def handle_memory_use_structures_analysis(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
+@register_method("six_hats_sequence")
+@mcp_tool_wrapper("six_hats_sequence")
+async def handle_six_hats_sequence(params: Optional[Union[dict, list]] = None) -> Dict[str, Any]:
     """
-    Use existing memory structures for comprehensive problem analysis
-    Expected params: {"problem_type": "knowledge_graph"}
+    Get recommended Six Hats sequence for systematic thinking sessions
+    No parameters required
     """
-    problem_type = "knowledge_graph"
-    if params and isinstance(params, dict):
-        problem_type = params.get("problem_type", problem_type)
+    sequence = get_recommended_hat_sequence()
     
-    try:
-        result = await use_memory_structures_for_analysis(problem_type)
-        return result
-    except Exception as e:
-        logger.error(f"Error in memory structures analysis: {e}")
-        raise ValueError(f"Memory structures analysis failed: {str(e)}")
+    return {
+        "method": "six_hats_sequence",
+        "sequence": sequence,
+        "total_steps": len(sequence),
+        "description": "Recommended sequence for Six Thinking Hats session",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "message": "Six Hats sequence retrieved successfully"
+    }
 
 
 # FastAPI route handlers for MCP JSON-RPC requests
