@@ -14,6 +14,8 @@ dependencies = [
     "uvicorn",
     "PyJWT",
     "python-multipart>=0.0.20",
+    "sqlalchemy>=2.0.41",
+    "alembic>=1.16.4",
 ]
 
 
